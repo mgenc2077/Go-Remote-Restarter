@@ -54,6 +54,12 @@ func main() {
 		Addr:    ":" + cfg.ServerConfig.Port,
 		Handler: mux,
 	}
-	server.ListenAndServe()
+
+	fmt.Printf("Server is Starting at %s\n", cfg.ServerConfig.Port)
+
+	if err = server.ListenAndServe(); err != nil {
+		fmt.Println("Server Start Failed: %w", err)
+		panic(err)
+	}
 
 }
