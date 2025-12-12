@@ -19,9 +19,9 @@ apps:
   - appid: hyperhdr
     filepath: "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\HyperHDR\\HyperHDR.lnk"
     waittime: 2
-  - appid: npp
-    filepath: "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\npp\\npp.lnk"
-    waittime: 2
+  - appid: notepad++
+    filepath: "C:\\Program Files\\Notepad++\\notepad++.exe"
+    waittime: 1
 ```
 
 > [!IMPORTANT]

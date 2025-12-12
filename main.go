@@ -24,13 +24,13 @@ type Config struct {
 }
 
 // Helper to get app by name
-func (c *Config) GetApp(name string) *AppConfig {
+func (c *Config) GetApp(name string) (*AppConfig, error) {
 	for i := range c.Apps {
 		if c.Apps[i].Appid == name {
-			return &c.Apps[i]
+			return &c.Apps[i], nil
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("App Not Found In configuration")
 }
 
 func main() {
@@ -48,7 +48,7 @@ func main() {
 
 	mux.HandleFunc("GET /", IndexHandler(&cfg))
 	mux.HandleFunc("GET /health", HealthHandler)
-	mux.HandleFunc("GET /restart/{appid}", restartHandler)
+	mux.HandleFunc("GET /restart/{appid}", RestartHandler(&cfg))
 
 	server := http.Server{
 		Addr:    ":" + cfg.ServerConfig.Port,
