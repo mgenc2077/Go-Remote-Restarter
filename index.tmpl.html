@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>App Restarter</title>
+    </head>
+    <body>
+        <h1>Available apps</h1>
+        <ul>
+            {{range .Apps}}
+            <li>
+                <!-- Link calls /restart?appid=xxx -->
+                <a href="/restart/{{.Appid}}">{{.Appid}}</a>
+                (wait {{.WaitTime}}s)
+            </li>
+            {{end}}
+        </ul>
+    </body>
+</html>
