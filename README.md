@@ -44,3 +44,39 @@ Returns 200 and OK if server is running.
 
 ### GET /restart/$appid
 Restarts $appid from the config.
+
+## Home Assistant Configuration
+At the end of your Home Assistant's configuration.yaml add the following:
+
+```yaml
+rest_command:
+  restart_hyperhdr:
+    url: "http://<your-server-ip>:4949/restart/hyperhdr"
+    method: GET
+```
+
+Create a automation:
+```yaml
+alias: Restart HyperHDR Button
+description: ""
+triggers:
+  - entity_id: button.restart_hyperhdr
+    trigger: state
+actions:
+  - action: rest_command.restart_hyperhdr
+mode: single
+```
+
+Add the button to your dashboard:
+
+```yaml
+views:
+  - title: Home
+    cards:
+      - type: button
+        name: Restart HyperHDR
+        icon: mdi:restart
+        tap_action:
+          action: call-service
+          service: rest_command.restart_hyperhdr
+```
