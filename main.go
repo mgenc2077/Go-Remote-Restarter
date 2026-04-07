@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -35,16 +36,24 @@ func (c *Config) GetApp(name string) (*AppConfig, error) {
 }
 
 func main() {
+	logFile, err := os.OpenFile("remote-restarter.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err == nil {
+		logger := slog.New(slog.NewTextHandler(logFile, nil))
+		slog.SetDefault(logger)
+	}
+
+	slog.Info("Application starting")
+
 	mux := http.NewServeMux()
 
 	data, err := os.ReadFile("RestartConfigs.yml")
 	if err != nil {
-		fmt.Println("reading config: %w", err)
+		slog.Error("reading config", "error", err)
 	}
 
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		fmt.Println("parsing yaml: %w", err)
+		slog.Error("parsing yaml", "error", err)
 	}
 
 	mux.HandleFunc("GET /", IndexHandler(&cfg))
@@ -57,8 +66,9 @@ func main() {
 	}
 
 	go func() {
+		slog.Info("Server is starting", "port", cfg.ServerConfig.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			fmt.Printf("Server Start Failed: %v\n", err)
+			slog.Error("Server Start Failed", "error", err)
 		}
 	}()
 

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"net/http"
 	"os/exec"
 	"time"
@@ -17,7 +18,7 @@ var indexTmpl = template.Must(template.New("index").Parse(indexHTML))
 
 // Returns 200 OK if server is running
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Health Endpoint Requested\n")
+	slog.Info("Health Endpoint Requested")
 	w.WriteHeader(200)
 	w.Write([]byte("OK"))
 }
@@ -25,7 +26,7 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 // Return the Restartable Applications
 func IndexHandler(cfg *Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("Index Endpoint Requested\n")
+		slog.Info("Index Endpoint Requested")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if err := indexTmpl.Execute(w, cfg); err != nil {
 			http.Error(w, "template error", 500)
@@ -37,7 +38,7 @@ func RestartHandler(cfg *Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get appid from url
 		appid := r.PathValue("appid")
-		fmt.Printf("Restart Request Received for: %s\n", appid)
+		slog.Info("Restart Request Received", "appid", appid)
 
 		// Find the app
 		appcfg, err := cfg.GetApp(appid)
@@ -72,7 +73,7 @@ func RestartHandler(cfg *Config) http.HandlerFunc {
 
 		// Return OK
 		if _, err = fmt.Fprintf(w, "App %s Restarted Successfully", appcfg.Appid); err != nil {
-			fmt.Printf("Restart Successfull but err could not be returned")
+			slog.Error("Restart Successful but response could not be written", "error", err)
 		}
 	}
 }
