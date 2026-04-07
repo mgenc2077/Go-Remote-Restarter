@@ -27,7 +27,7 @@ jobs:
         run: GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o remote-restarter-linux-amd64 .
 
       - name: Build Windows amd64
-        run: GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o remote-restarter-windows-amd64.exe .
+        run: GOOS=windows GOARCH=amd64 go build -ldflags="-w -s -H=windowsgui" -o remote-restarter-windows-amd64.exe .
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
