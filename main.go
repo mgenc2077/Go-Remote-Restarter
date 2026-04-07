@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"fyne.io/systray"
 	"gopkg.in/yaml.v3"
 )
 
@@ -57,9 +58,27 @@ func main() {
 
 	fmt.Printf("Server is Starting at %s\n", cfg.ServerConfig.Port)
 
-	if err = server.ListenAndServe(); err != nil {
-		fmt.Println("Server Start Failed: %w", err)
-		panic(err)
-	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("Server Start Failed: %v\n", err)
+		}
+	}()
 
+	systray.Run(onReady, onExit)
+}
+
+func onReady() {
+	systray.SetTitle("Restarter")
+	systray.SetTooltip("Remote Restarter Server")
+	
+	mQuit := systray.AddMenuItem("Quit", "Quit the application")
+
+	go func() {
+		<-mQuit.ClickedCh
+		systray.Quit()
+	}()
+}
+
+func onExit() {
+	// clean up here
 }
