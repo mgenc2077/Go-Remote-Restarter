@@ -1,0 +1,20 @@
+version: '3'
+
+# To use deploy-win task on the Windows server install open-ssh server from github and enable it.
+# Start-Service sshd
+# Set-Service -Name sshd -StartupType 'Automatic'
+# Open the firewall port
+# New-NetFirewallRule -Name sshd -DisplayName 'Allow SSH' -Enabled True -Direction Inbound -Protocol TCP -LocalPort 22
+
+vars:
+  WIN_SERVER: "mgenc@192.168.1.103" # Update with your IP/Hostname
+  REMOTE_PATH: "C:/projects/Go-Remote-Restarter/"
+
+tasks:
+  build-win:
+    desc: build the application for windows
+    cmds:
+      #- ssh {{.WIN_SERVER}} "powershell -Command \"Remove-Item {{.REMOTE_PATH}}remote-restarter-windows-amd64.exe -ErrorAction SilentlyContinue\""
+      - GOOS=windows GOARCH=amd64 go build -ldflags="-w -s -H=windowsgui" -o remote-restarter-windows-amd64.exe .
+      - scp remote-restarter-windows-amd64.exe {{.WIN_SERVER}}:{{.REMOTE_PATH}}
+

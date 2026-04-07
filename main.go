@@ -56,21 +56,22 @@ func main() {
 		Handler: mux,
 	}
 
-	fmt.Printf("Server is Starting at %s\n", cfg.ServerConfig.Port)
-
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("Server Start Failed: %v\n", err)
 		}
 	}()
 
-	systray.Run(onReady, onExit)
+	systray.Run(func() { onReady(&cfg) }, onExit)
 }
 
-func onReady() {
+func onReady(cfg *Config) {
 	systray.SetTitle("Restarter")
 	systray.SetTooltip("Remote Restarter Server")
-	
+
+	mPort := systray.AddMenuItem(fmt.Sprintf("Server is running at localhost:%s", cfg.ServerConfig.Port), "")
+	mPort.Disable()
+
 	mQuit := systray.AddMenuItem("Quit", "Quit the application")
 
 	go func() {
