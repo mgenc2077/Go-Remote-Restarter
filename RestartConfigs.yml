@@ -8,3 +8,7 @@ apps:
   - appid: notepad++
     filepath: "C:\\Program Files\\Notepad++\\notepad++.exe"
     waittime: 1
+  - appid: test
+    command:
+      - "pkill wasistlos"
+      - "echo World"

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -47,33 +48,56 @@ func RestartHandler(cfg *Config) http.HandlerFunc {
 			http.Error(w, errmsg, 500)
 		}
 
-		// Stop the app
-		stopCmd := fmt.Sprintf("(Stop-Process -Name %v)", appcfg.Appid)
-		stopPs := exec.Command("powershell", "-Command", stopCmd)
-		if err := stopPs.Run(); err != nil {
-			errmsg := fmt.Sprintf("Stop-Process Request Failed for %s :\n %s", appcfg.Appid, err.Error())
-			http.Error(w, errmsg, 500)
-		}
+		if appcfg.Command != nil {
+			// Run each command
+			for _, command := range *appcfg.Command {
 
-		// Wait for it to close
-		time.Sleep(time.Duration(appcfg.WaitTime) * time.Second)
+				// Seperate command to command and arguments
+				parts := strings.Fields(command)
 
-		// Start the app again
-		startPs := exec.Command(appcfg.FilePath)
-		if err := startPs.Start(); err != nil {
-			errmsg := fmt.Sprintf("Starting Process Failed for %s :\n %s", appcfg.Appid, err.Error())
-			http.Error(w, errmsg, 500)
-		}
+				cmd := exec.Command(parts[0], parts[1:]...)
+				out, err := cmd.CombinedOutput()
+				if err != nil {
+					errmsg := fmt.Sprintf("Command Execution Failed for %s :\n %s\n Output:\n%s", appcfg.Appid, err.Error(), string(out))
+					http.Error(w, errmsg, 500)
+					return
+				}
+			}
 
-		// Application started checking its status
-		time.Sleep(1 * time.Second)
-		if startPs.ProcessState != nil && startPs.ProcessState.Exited() {
-			http.Error(w, "App Exited After Starting", 500)
-		}
+			// Return OK
+			if _, err = fmt.Fprintf(w, "Commands for %s Executed Successfully", appcfg.Appid); err != nil {
+				slog.Error("Command Execution Successful but response could not be written", "error", err)
+			}
 
-		// Return OK
-		if _, err = fmt.Fprintf(w, "App %s Restarted Successfully", appcfg.Appid); err != nil {
-			slog.Error("Restart Successful but response could not be written", "error", err)
+		} else {
+			// Stop the app
+			stopCmd := fmt.Sprintf("(Stop-Process -Name %v)", appcfg.Appid)
+			stopPs := exec.Command("powershell", "-Command", stopCmd)
+			if err := stopPs.Run(); err != nil {
+				errmsg := fmt.Sprintf("Stop-Process Request Failed for %s :\n %s", appcfg.Appid, err.Error())
+				http.Error(w, errmsg, 500)
+			}
+
+			// Wait for it to close
+			time.Sleep(time.Duration(appcfg.WaitTime) * time.Second)
+
+			// Start the app again
+			startPs := exec.Command(appcfg.FilePath)
+			if err := startPs.Start(); err != nil {
+				errmsg := fmt.Sprintf("Starting Process Failed for %s :\n %s", appcfg.Appid, err.Error())
+				http.Error(w, errmsg, 500)
+			}
+
+			// Application started checking its status
+			time.Sleep(1 * time.Second)
+			if startPs.ProcessState != nil && startPs.ProcessState.Exited() {
+				http.Error(w, "App Exited After Starting", 500)
+			}
+
+			// Return OK
+			if _, err = fmt.Fprintf(w, "App %s Restarted Successfully", appcfg.Appid); err != nil {
+				slog.Error("Restart Successful but response could not be written", "error", err)
+			}
 		}
 	}
 }

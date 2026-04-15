@@ -11,9 +11,10 @@ import (
 )
 
 type AppConfig struct {
-	Appid    string `yaml:"appid"`
-	FilePath string `yaml:"filepath"`
-	WaitTime int    `yaml:"waittime"`
+	Appid    string    `yaml:"appid"`
+	FilePath string    `yaml:"filepath"`
+	WaitTime int       `yaml:"waittime"`
+	Command  *[]string `yaml:"command"`
 }
 
 type ServerConfig struct {
