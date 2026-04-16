@@ -1,14 +1,14 @@
 # Remote-Restarter 
 
 ## Description
-This is a simple app that i use to remote restart some apps in my windows 10 HTPC. I wanted to make it mainly to restart HyperHDR Screen Capture which sometimes glitches out when i connect to my Sunshine server fullscreen with Moonlight so i just trigger the endpoint from my phone. 
+This is a simple web server that can be used to remote restart some apps on a windows 10 HTPC. It was mainly created to restart HyperHDR Direct Screen Capture which sometimes glitches out when i connect to my Sunshine server fullscreen with Moonlight so i trigger the endpoint from my phone. 
+
+## Features
+- Restart an application with a filepath and check if it is running with a wait time
+- Run a command with arguments
 
 ## Installation
-For now build the application 
-
-```powershell
-go build -o remote-restarter.exe
-```
+Get the latest release from the [releases](https://github.com/mgenc2077/Go-Remote-Restarter/releases) page.
 
 Create\Modify config file in the same directory (RestartConfigs.yml)
 ```yaml
@@ -22,17 +22,21 @@ apps:
   - appid: notepad++
     filepath: "C:\\Program Files\\Notepad++\\notepad++.exe"
     waittime: 1
+  - appid: k3d-stop
+    command:
+      - "wsl k3d cluster stop mg-homelab"
+  - appid: k3d-start
+    command:
+      - "wsl k3d cluster start mg-homelab"
 ```
 
 > [!IMPORTANT]
 > Dont forget to add a firewall rule that allows requests to the server.
 
-run it (which starts the web server)
+Run the executable (which starts the web server in the system tray)
 ```powershell
 .\remote-restarter.exe
 ```
-
-In the future i am going to create an nssm config to run it as a windows service for auto-start and maybe even a actions workflow for ease of installation.
 
 ## Endpoints
 
@@ -43,7 +47,7 @@ Returns a simple embedded html with all the apps and restart links in the config
 Returns 200 and OK if server is running.
 
 ### GET /restart/$appid
-Restarts $appid from the config.
+Restarts or runs the command associated with $appid from the config.
 
 ## Home Assistant Configuration
 At the end of your Home Assistant's configuration.yaml add the following:
